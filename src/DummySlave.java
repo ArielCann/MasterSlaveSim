@@ -26,6 +26,10 @@ public class DummySlave implements Runnable {
         out.println("S" + slaveType);
         socket.setKeepAlive(true);
     }
+
+    /**
+     * This Runnable listens for jobs from the master.
+     */
     private class Listen implements Runnable {
         @Override
         public void run() {
@@ -41,10 +45,14 @@ public class DummySlave implements Runnable {
                 char jobType = line.charAt(0);
                 String id = line.substring(1);
                 jobs.add(new Job(Integer.parseInt(id), jobType));
-                System.out.println(slaveType + "accepting job #" + line);
+                System.out.println(slaveType + "-Slave accepting job #" + line);
             }
         }
     }
+
+    /**
+     * Uses sleep statements to simulate doing work.
+     */
     private class DoJob implements Runnable {
         @Override
         public void run() {

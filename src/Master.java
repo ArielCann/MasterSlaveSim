@@ -9,6 +9,11 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * This class accepts jobs from clients, delegates them to slaves,
+ * and informs clients once slaves have completed their work.
+ *
+ */
 public class Master  implements Runnable {
     private final Map<Socket,Integer> a_slaves = new ConcurrentHashMap<Socket,Integer>();
     private final Map<Socket,Integer> b_slaves = new ConcurrentHashMap<Socket,Integer>();
@@ -20,6 +25,10 @@ public class Master  implements Runnable {
         PORT = port;
         serverSocket = new ServerSocket(PORT);
     }
+
+    /**
+     * Listens for news of job completion from slaves and sends it to clients.
+     */
     private class SlaveHandler implements Runnable{
         private final Socket slave;
         private final BufferedReader in;
@@ -49,6 +58,7 @@ public class Master  implements Runnable {
                     try{
                         PrintWriter clientWriter = new PrintWriter(client.getOutputStream());
                         clientWriter.println(line);
+                        clientWriter.flush();
                     }
                     catch(IOException e) {
                         e.printStackTrace();
@@ -63,6 +73,10 @@ public class Master  implements Runnable {
             }
         }
     }
+
+    /**
+     * Listens for jobs from clients and assigns them to slaves.
+     */
     private class ClientHandler implements Runnable{
         private final Socket client;
         private final BufferedReader in;
@@ -102,11 +116,13 @@ public class Master  implements Runnable {
                         if(minA >= 5 * minB || minASocket == null){
                             PrintWriter slaveOut = new PrintWriter(minBSocket.getOutputStream(),true);
                             slaveOut.println(line);
+                            slaveOut.flush();
                             b_slaves.put(minBSocket,b_slaves.get(minBSocket) + 1);
                         }
                         else{
                             PrintWriter slaveOut = new PrintWriter(minASocket.getOutputStream(),true);
                             slaveOut.println(line);
+                            slaveOut.flush();
                             a_slaves.put(minASocket,a_slaves.get(minASocket) + 1);
                         }
                     }
@@ -134,6 +150,7 @@ public class Master  implements Runnable {
                             try {
                                 PrintWriter slaveOut = new PrintWriter(minASocket.getOutputStream(),true);
                                 slaveOut.println(line);
+                                slaveOut.flush();
                                 a_slaves.put(minASocket,a_slaves.get(minASocket) + 1);
                             } catch (IOException e) {
                                 throw new RuntimeException(e);
@@ -144,6 +161,7 @@ public class Master  implements Runnable {
                             {
                                 PrintWriter slaveOut = new PrintWriter(minBSocket.getOutputStream(),true);
                                 slaveOut.println(line);
+                                slaveOut.flush();
                                 b_slaves.put(minBSocket,b_slaves.get(minBSocket) + 1);
                             }catch (IOException e) {
                                 throw new RuntimeException(e);
@@ -157,6 +175,10 @@ public class Master  implements Runnable {
             }
         }
     }
+
+    /**
+     * Identifies whether the incoming connection is a slave or client and passes it to the appropriate handler
+     */
     @Override
     public void run(){
         try{
@@ -169,7 +191,7 @@ public class Master  implements Runnable {
                     String inputLine = in.readLine();
                     if(inputLine != null && inputLine.startsWith("SA")){
                         a_slaves.put(newSocket,0);
-                        System.out.println("accepting A slave #" + a_slaves.size());
+                        System.out.println("Master Accepting A slave #" + a_slaves.size());
                         SlaveHandler handle = new SlaveHandler(newSocket);
                         Thread newThread = new Thread(handle);
                         newThread.setDaemon(false);
@@ -177,7 +199,7 @@ public class Master  implements Runnable {
                     }
                     if(inputLine != null && inputLine.startsWith("SB")){
                         b_slaves.put(newSocket,0);
-                        System.out.println("accepting B slave #" + b_slaves.size());
+                        System.out.println("Master Accepting B slave #" + b_slaves.size());
                         SlaveHandler handle = new SlaveHandler(newSocket);
                         Thread newThread = new Thread(handle);
                         newThread.setDaemon(false);
@@ -186,7 +208,7 @@ public class Master  implements Runnable {
                     if(inputLine != null && inputLine.startsWith("C")){
                         numClients.incrementAndGet();
                         ClientHandler handle = new ClientHandler(newSocket);
-                        System.out.println("Accepting Client #" + numClients.get());
+                        System.out.println("Master Accepting Client #" + numClients.get());
                         Thread newThread = new Thread(handle);
                         newThread.setDaemon(false);
                         newThread.start();
