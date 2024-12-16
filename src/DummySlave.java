@@ -17,9 +17,9 @@ public class DummySlave implements Runnable {
     private BufferedReader in;
     private PrintWriter out;
     private Socket socket;
-    public DummySlave(int port,boolean isTypeA) throws IOException {
+    public DummySlave(int port,char slaveType) throws IOException {
         PORT = port;
-        this.slaveType = isTypeA ? 'A':'B';
+        this.slaveType = slaveType;
         socket = new Socket("localhost",PORT);
         in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         out = new PrintWriter(socket.getOutputStream(), true);
