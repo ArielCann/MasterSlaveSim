@@ -92,6 +92,9 @@ public class Master  implements Runnable {
                 String line;
                 try{
                     line = in.readLine();
+                    while(a_slaves.isEmpty() && b_slaves.isEmpty()){
+                        Thread.sleep(50);
+                    }
                     if(line.startsWith("A")){
                         clientJobs.put(new Job(Integer.parseInt(line.substring(1)),'A'),client);
                         int minA = Integer.MAX_VALUE;
@@ -169,7 +172,7 @@ public class Master  implements Runnable {
                         }
                     }
                 }
-                catch (IOException e) {
+                catch (IOException | InterruptedException e) {
                     throw new RuntimeException(e);
                 }
             }
