@@ -14,12 +14,14 @@ public class Client implements Runnable {
     private BufferedReader in;
     private Socket master;
     private int numJobs = 10;
-    public Client(int port) throws IOException {
+    private int jobBlock;
+    public Client(int port,int jobBlock) throws IOException {
         PORT = port;
         master = new Socket("localhost",PORT);
         master.setKeepAlive(true);
         in = new BufferedReader(new InputStreamReader(master.getInputStream()));
         out = new PrintWriter(master.getOutputStream(), true);
+        this.jobBlock = jobBlock;
     }
     private Random rand = new Random();
 
@@ -55,7 +57,7 @@ public class Client implements Runnable {
         out.flush();
         Thread listener = new Thread(new Listen());
         listener.start();
-        for (int i = 0; i< numJobs; i++){
+        for (int i = 10 * jobBlock; i< (10 * jobBlock) + numJobs; i++){
             String type = (rand.nextBoolean()) ? "A" : "B";
             out.println(type + i);
         }

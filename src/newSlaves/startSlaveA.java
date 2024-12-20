@@ -1,11 +1,9 @@
 package newSlaves;
 
-public class startSlave {
+public class startSlaveA {
     public static void main(String[] args) {
         try {
-            SlaveA slaveA = new SlaveA(3000);
-            SlaveB slaveB = new SlaveB(3000);
-            (new Thread(slaveB)).start();
+            AbstractSlave slaveA = new SlaveA(3000);
             (new Thread(slaveA)).start();
         } catch (Exception e) {
             e.printStackTrace();
